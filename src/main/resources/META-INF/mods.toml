@@ -1,0 +1,12 @@
+modLoader="javafml"
+loaderVersion="[35,)"
+license="All rights reserved"
+[[mods]]
+modId="wanderingpets"
+version="${file.jarVersion}"
+displayName="Wandering Pets"
+credits="A continuation of the Independent Pets by lizin5ths"
+authors="outurnate"
+description='''
+Configurable mod to disable tamed wolves, parrots, and cats from following the player
+'''
