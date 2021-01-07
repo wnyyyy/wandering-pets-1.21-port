@@ -1,0 +1,11 @@
+{
+	"required": true,
+	"package": "com.outurnate.wanderingpets.mixins",
+	"compatibilityLevel": "JAVA_8",
+	"refmap": "modid.mixins.json",
+	"mixins": [
+		"TameableEntityMixin",
+		"FollowOwnerGoalMixin"
+	],
+	"minVersion": "0.8"
+}
