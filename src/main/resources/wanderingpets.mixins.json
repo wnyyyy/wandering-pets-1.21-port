@@ -1,11 +1,14 @@
 {
-	"required": true,
-	"package": "com.outurnate.wanderingpets.mixins",
-	"compatibilityLevel": "JAVA_21",
-	"refmap": "modid.mixins.json",
-	"mixins": [
-		"TameableEntityMixin",
-		"FollowOwnerGoalMixin"
-	],
-	"minVersion": "0.8"
+  "required": true,
+  "package": "com.outurnate.wanderingpets.mixins",
+  "compatibilityLevel": "JAVA_21",
+  "refmap": "wanderingpets.refmap.json",
+  "mixins": [
+    "TamableEntityMixin",
+    "FollowOwnerGoalMixin"
+  ],
+  "minVersion": "0.8",
+  "injectors": {
+    "defaultRequire": 1
+  }
 }
