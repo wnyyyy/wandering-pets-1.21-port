@@ -29,7 +29,6 @@ runs {
     }
 
     client {
-        arguments '--mixin', 'wanderingpets.mixins.json'
         systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
     }
 
