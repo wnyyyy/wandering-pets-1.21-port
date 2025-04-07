@@ -22,14 +22,13 @@ public class Config {
 
         public General(ModConfigSpec.Builder builder) {
             builder.push("wanderingpets");
-
             disableFollowingCats = builder
                     .comment("Disable following for cats")
                     .define("disableCatFollow", true);
 
             disableFollowingWolves = builder
                     .comment("Disable following for wolves")
-                    .define("disableWolfFollow", true);
+                    .define("disableWolfFollow", false);
 
             disableFollowingParrots = builder
                     .comment("Disable following for parrots")
