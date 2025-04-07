@@ -33,5 +33,4 @@ src/generated/resources/.cache/cache
 custom.gradle
 # Flatdir repo for mods not available on a proper Maven server
 flatdir
-/runs/junit/junit_jvm_args.txt
-/runs/junit/junit_test_args.txt
+/runs
