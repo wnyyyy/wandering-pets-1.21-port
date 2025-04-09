@@ -41,7 +41,7 @@ public class Config {
         }
     }
 
-    public static boolean shouldEntityFollow(TamableAnimal entity) {
+    public static boolean isWanderBehaviorEnabled(TamableAnimal entity) {
         return  (entity instanceof Cat    && GENERAL.enableBehaviorCats.get()) ||
                 (entity instanceof Wolf   && GENERAL.enableBehaviorWolves.get()) ||
                 (entity instanceof Parrot && GENERAL.enableBehaviorParrots.get());
