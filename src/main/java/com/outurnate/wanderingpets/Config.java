@@ -14,41 +14,36 @@ public class Config {
 
     public static class General {
 
-        public final ModConfigSpec.BooleanValue disableFollowingCats;
-        public final ModConfigSpec.BooleanValue disableFollowingWolves;
-        public final ModConfigSpec.BooleanValue disableFollowingParrots;
+        public final ModConfigSpec.BooleanValue enableBehaviorCats;
+        public final ModConfigSpec.BooleanValue enableBehaviorWolves;
+        public final ModConfigSpec.BooleanValue enableBehaviorParrots;
         public final ModConfigSpec.BooleanValue enablePetRespawn;
-        public final ModConfigSpec.BooleanValue enableToggleFollow;
 
         public General(ModConfigSpec.Builder builder) {
             builder.push("wanderingpets");
-            disableFollowingCats = builder
-                    .comment("Disable following for cats")
-                    .define("disableCatFollow", true);
+            enableBehaviorCats = builder
+                    .comment("Enable toggle wander behavior for cats")
+                    .define("enableBehaviorCats", true);
 
-            disableFollowingWolves = builder
-                    .comment("Disable following for wolves")
-                    .define("disableWolfFollow", false);
+            enableBehaviorWolves = builder
+                    .comment("Enable toggle wander behavior for wolves")
+                    .define("enableBehaviorWolves", true);
 
-            disableFollowingParrots = builder
-                    .comment("Disable following for parrots")
-                    .define("disableParrotFollow", true);
+            enableBehaviorParrots = builder
+                    .comment("Enable toggle wander behavior for parrots")
+                    .define("enableBehaviorParrots", true);
 
             enablePetRespawn = builder
-                    .comment("Allow pets to respawn (with debuff)")
+                    .comment("Allow pets to respawn (with debuff to player)")
                     .define("enablePetRespawn", false);
-
-            enableToggleFollow = builder
-                    .comment("Toggle follow behavior with shift+right click")
-                    .define("enableToggleFollow", true);
 
             builder.pop();
         }
     }
 
     public static boolean shouldEntityFollow(TamableAnimal entity) {
-        return  (entity instanceof Cat    && GENERAL.disableFollowingCats.get()) ||
-                (entity instanceof Wolf   && GENERAL.disableFollowingWolves.get()) ||
-                (entity instanceof Parrot && GENERAL.disableFollowingParrots.get());
+        return  (entity instanceof Cat    && GENERAL.enableBehaviorCats.get()) ||
+                (entity instanceof Wolf   && GENERAL.enableBehaviorWolves.get()) ||
+                (entity instanceof Parrot && GENERAL.enableBehaviorParrots.get());
     }
 }
