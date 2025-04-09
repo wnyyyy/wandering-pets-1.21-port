@@ -1,5 +1,5 @@
 {
-	"wanderingpets.petDeath": "A pet died.  You are grieved",
-	"wanderingpets.follow": "Pet will follow",
-	"wanderingpets.unfollow": "Pet will not follow"
+	"wanderingpets.petDeath": "%s died. You are grieved.",
+	"wanderingpets.follow": "%s will follow you.",
+	"wanderingpets.unfollow": "%s will wander around."
 }
