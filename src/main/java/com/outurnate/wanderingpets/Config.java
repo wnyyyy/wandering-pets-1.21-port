@@ -17,7 +17,6 @@ public class Config {
         public final ModConfigSpec.BooleanValue enableBehaviorCats;
         public final ModConfigSpec.BooleanValue enableBehaviorWolves;
         public final ModConfigSpec.BooleanValue enableBehaviorParrots;
-        public final ModConfigSpec.BooleanValue enablePetRespawn;
 
         public General(ModConfigSpec.Builder builder) {
             builder.push("wanderingpets");
@@ -32,10 +31,6 @@ public class Config {
             enableBehaviorParrots = builder
                     .comment("Enable toggle wander behavior for parrots")
                     .define("enableBehaviorParrots", true);
-
-            enablePetRespawn = builder
-                    .comment("Allow pets to respawn (with debuff to player)")
-                    .define("enablePetRespawn", false);
 
             builder.pop();
         }
