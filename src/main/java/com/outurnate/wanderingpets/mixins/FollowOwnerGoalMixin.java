@@ -1,43 +1,57 @@
 package com.outurnate.wanderingpets.mixins;
 
+import com.outurnate.wanderingpets.Config;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.ai.goal.FollowOwnerGoal;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.player.Player;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import com.outurnate.wanderingpets.WanderingPets.Config;
 import com.outurnate.wanderingpets.interfaces.IFollowsAccessor;
 
-import net.minecraft.entity.ai.goal.FollowOwnerGoal;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.passive.TameableEntity;
-
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import javax.annotation.Nullable;
 
 @Mixin(FollowOwnerGoal.class)
 public abstract class FollowOwnerGoalMixin extends Goal
 {
-    @Shadow TameableEntity tameable;
-    @Shadow float maxDist;
-    @Shadow float minDist;
-    
-    @Inject(at = @At("HEAD"), method = "tick")
-    public void delayTick(CallbackInfo ci)
+
+    @Final
+    @Shadow
+    private TamableAnimal tamable;
+
+    @Shadow public abstract void stop();
+
+    @Shadow public abstract boolean canUse();
+
+    @Shadow @Nullable private LivingEntity owner;
+
+    @Inject(at = @At("HEAD"), method = "canContinueToUse", cancellable = true)
+    public void canContinueToUse(CallbackInfoReturnable<Boolean> cir)
     {
     	boolean shouldFollow =
-    			// Mask the entity's follow property with the config option
-    			(!Config.enableToggleFollow.get() || ((IFollowsAccessor)this.tameable).isAllowedToFollow())
-    			// Check if the entity type must follow
-    			&& Config.shouldEntityFollow(this.tameable);
-        if (!shouldFollow)
-        {
-        	this.maxDist = Float.MAX_VALUE;
-        	this.minDist = Float.MAX_VALUE;
+    			((IFollowsAccessor)this.tamable).isAllowedToFollow() && Config.isWanderBehaviorEnabled(this.tamable);
+        if (!shouldFollow) {
+            cir.setReturnValue(false);
+            cir.cancel();
         }
-        else
-        {
-        	this.maxDist = 10.0F;
-        	this.minDist = 5.0F;
+    }
+
+    @Inject(at = @At("HEAD"), method = "canUse", cancellable = true)
+    public void canUse(CallbackInfoReturnable<Boolean> cir)
+    {
+        boolean shouldFollow =
+                ((IFollowsAccessor)this.tamable).isAllowedToFollow() && Config.isWanderBehaviorEnabled(this.tamable);
+        if (!shouldFollow) {
+            cir.setReturnValue(false);
+            cir.cancel();
         }
     }
 }
