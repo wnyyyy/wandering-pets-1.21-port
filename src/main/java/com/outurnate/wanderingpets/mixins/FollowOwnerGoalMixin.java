@@ -15,7 +15,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(FollowOwnerGoal.class)
 public abstract class FollowOwnerGoalMixin extends Goal
 {
-
     @Final
     @Shadow
     private TamableAnimal tamable;
@@ -24,7 +23,7 @@ public abstract class FollowOwnerGoalMixin extends Goal
     public void canContinueToUse(CallbackInfoReturnable<Boolean> cir)
     {
     	boolean shouldFollow =
-    			((IFollowsAccessor)this.tamable).isAllowedToFollow() && Config.isWanderBehaviorEnabled(this.tamable);
+    		((IFollowsAccessor)this.tamable).isAllowedToFollow() && Config.isWanderBehaviorEnabled(this.tamable);
         if (!shouldFollow) {
             cir.setReturnValue(false);
             cir.cancel();
@@ -35,7 +34,7 @@ public abstract class FollowOwnerGoalMixin extends Goal
     public void canUse(CallbackInfoReturnable<Boolean> cir)
     {
         boolean shouldFollow =
-                ((IFollowsAccessor)this.tamable).isAllowedToFollow() && Config.isWanderBehaviorEnabled(this.tamable);
+            ((IFollowsAccessor)this.tamable).isAllowedToFollow() && Config.isWanderBehaviorEnabled(this.tamable);
         if (!shouldFollow) {
             cir.setReturnValue(false);
             cir.cancel();
