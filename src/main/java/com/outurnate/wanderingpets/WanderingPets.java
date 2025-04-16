@@ -35,7 +35,7 @@ public class WanderingPets
 			followsAccessor.setAllowedToFollow(shouldFollow);
 
 			player.sendSystemMessage(Component.translatable(
-					shouldFollow ? "wanderingpets.follow" : "wanderingpets.unfollow"
+					shouldFollow ? "wanderingpets.follow" : "wanderingpets.unfollow", pet.getName()
 			));
 
 			event.setCanceled(true);
