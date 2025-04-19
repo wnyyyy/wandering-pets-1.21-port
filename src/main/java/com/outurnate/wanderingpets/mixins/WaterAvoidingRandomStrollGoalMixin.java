@@ -14,8 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(WaterAvoidingRandomStrollGoal.class)
-public abstract class WaterAvoidingRandomStrollGoalMixin extends RandomStrollGoal
-{
+public abstract class WaterAvoidingRandomStrollGoalMixin extends RandomStrollGoal {
     @Shadow
     @Final
     protected float probability;
@@ -26,17 +25,17 @@ public abstract class WaterAvoidingRandomStrollGoalMixin extends RandomStrollGoa
 
     @Inject(at = @At("TAIL"), method = "getPosition", cancellable = true)
     protected void getPosition(CallbackInfoReturnable<Vec3> cir) {
-        int multiplier = 3;
-        if (!mob.isInWaterOrBubble()) {
-            cir.setReturnValue(mob.getRandom().nextFloat() >= this.probability ?
-                    LandRandomPos.getPos(mob, 10*multiplier, 7) :
-                    wpets$getPosition(mob, multiplier));
-            cir.cancel();
-        }
+//        int multiplier = 3;
+//        if (!mob.isInWaterOrBubble()) {
+//            cir.setReturnValue(mob.getRandom().nextFloat() >= this.probability ?
+//                    LandRandomPos.getPos(mob, 10*multiplier, 7) :
+//                    wpets$getPosition(mob, multiplier));
+//            cir.cancel();
+//        }
     }
 
     @Unique
     private Vec3 wpets$getPosition(PathfinderMob mob, int mult) {
-        return LandRandomPos.getPos(mob, 10*mult, 7);
+        return LandRandomPos.getPos(mob, 10 * mult, 7);
     }
 }

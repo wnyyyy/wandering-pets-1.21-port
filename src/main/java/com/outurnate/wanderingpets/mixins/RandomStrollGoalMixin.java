@@ -16,8 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.Objects;
 
 @Mixin(RandomStrollGoal.class)
-public abstract class RandomStrollGoalMixin extends Goal
-{
+public abstract class RandomStrollGoalMixin extends Goal {
     @Final
     @Shadow
     protected PathfinderMob mob;
@@ -27,9 +26,11 @@ public abstract class RandomStrollGoalMixin extends Goal
 
     @Inject(at = @At("HEAD"), method = "canUse")
     public void canUse(CallbackInfoReturnable<Boolean> cir) {
-        if (mob instanceof Cat && ((Cat) mob).isTame() ) {
+        if (mob instanceof Cat && ((Cat) mob).isTame()) {
             wandering_pets_1_21_port$tickCount++;
-            Objects.requireNonNull(((Cat) mob).getOwner()).sendSystemMessage(Component.translatable(String.format("canUseRandomStroll#%s", wandering_pets_1_21_port$tickCount)));
+            if (wandering_pets_1_21_port$tickCount % 100 == 0) {
+                Objects.requireNonNull(((Cat) mob).getOwner()).sendSystemMessage(Component.translatable(String.format("canUseRandomStroll#%s", wandering_pets_1_21_port$tickCount)));
+            }
         }
     }
 }
