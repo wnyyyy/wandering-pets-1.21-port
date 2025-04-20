@@ -10,10 +10,14 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Mod(WanderingPets.MODID)
 public class WanderingPets {
+
     public static final String MODID = "wanderingpets";
+    public static final Logger LOGGER = LoggerFactory.getLogger("WanderingPets");
 
     public WanderingPets(ModContainer modContainer) {
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.CONFIG_SPEC);

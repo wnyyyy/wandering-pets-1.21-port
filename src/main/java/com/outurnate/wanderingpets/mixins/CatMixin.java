@@ -1,5 +1,7 @@
 package com.outurnate.wanderingpets.mixins;
 
+import com.outurnate.wanderingpets.Config;
+import com.outurnate.wanderingpets.WanderingPets;
 import com.outurnate.wanderingpets.interfaces.ICatWanderBehaviorAccessor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
@@ -31,24 +33,18 @@ public abstract class CatMixin extends TamableAnimal implements ICatWanderBehavi
 
     @Inject(at = @At("HEAD"), method = "tick")
     public void tick(CallbackInfo ci) {
-        if (this.isTame() && this.getOwner() != null) {
+        if (Config.GENERAL.betterCatBehavior.get() && this.isTame() && this.getOwner() != null) {
             wpets$notSittedTicks++;
             wpets$notSleptTicks++;
-        }
-        if (this.isTame() && this.getOwner() != null && this.tickCount % 50 == 0) {
-            Set<WrappedGoal> allGoals = this.goalSelector.getAvailableGoals();
-            WrappedGoal lieOnBed = allGoals.stream().filter(goal -> goal.getGoal() instanceof CatLieOnBedGoal).findFirst().orElse(null);
-            if (lieOnBed != null) {
-                MoveToBlockGoalAccessor moveToBlockGoalAccessor = (MoveToBlockGoalAccessor) lieOnBed.getGoal();
-                this.getOwner().sendSystemMessage(Component.translatable(String.format("LieOnBed | Running: %s | notSlept: %s", lieOnBed.isRunning(), wpets$notSleptTicks)));
+            if (Config.GENERAL.debugMode.get() && this.tickCount % 50 == 0) {
+                Set<WrappedGoal> allGoals = this.goalSelector.getAvailableGoals();
+                allGoals.stream().filter(goal -> goal.getGoal() instanceof CatLieOnBedGoal).findFirst().ifPresent(lieOnBed ->
+                        Config.log("LieOnBed | Running: {} | notSlept: {}", lieOnBed.isRunning(), wpets$notSleptTicks));
+                allGoals.stream().filter(goal -> goal.getGoal() instanceof CatSitOnBlockGoal).findFirst().ifPresent(sitOnBlock ->
+                        Config.log("SitOnBlock | Running: {} | notSitted: {}", sitOnBlock.isRunning(), wpets$notSittedTicks));
+                allGoals.stream().filter(WrappedGoal::isRunning).findFirst().ifPresent(runningGoal ->
+                        Config.log("catTick#%s | RunningGoal: %s", this.tickCount, runningGoal.getGoal().getClass().getSimpleName()));
             }
-            WrappedGoal sitOnBlock = allGoals.stream().filter(goal -> goal.getGoal() instanceof CatSitOnBlockGoal).findFirst().orElse(null);
-            if (sitOnBlock != null) {
-                MoveToBlockGoalAccessor moveToBlockGoalAccessor = (MoveToBlockGoalAccessor) sitOnBlock.getGoal();
-                this.getOwner().sendSystemMessage(Component.translatable(String.format("SitOnBlock | Running: %s | notSitted: %s", sitOnBlock.isRunning(), wpets$notSittedTicks)));
-            }
-            allGoals.stream().filter(WrappedGoal::isRunning).findFirst().ifPresent(runningGoal ->
-                    this.getOwner().sendSystemMessage(Component.translatable(String.format("catTick#%s | RunningGoal: %s", this.tickCount, runningGoal.getGoal().getClass().getSimpleName()))));
         }
     }
 
