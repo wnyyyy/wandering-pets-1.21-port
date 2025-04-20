@@ -17,10 +17,10 @@ public abstract class CatLieOnBedGoalMixin {
     @Shadow
     private Cat cat;
 
-    @Inject(at = @At("TAIL"), method = "nextStartTick", cancellable = true)
-    public void nextStartTick(CallbackInfoReturnable<Integer> cir) {
-        int delay = Mth.positiveCeilDiv((2000 + cat.getRandom().nextInt(2000)), 2);
-        cir.setReturnValue(delay);
-        cir.cancel();
-    }
+//    @Inject(at = @At("TAIL"), method = "nextStartTick", cancellable = true)
+//    public void nextStartTick(CallbackInfoReturnable<Integer> cir) {
+//        int delay = Mth.positiveCeilDiv((2000 + cat.getRandom().nextInt(2000)), 2);
+//        cir.setReturnValue(delay);
+//        cir.cancel();
+//    }
 }
