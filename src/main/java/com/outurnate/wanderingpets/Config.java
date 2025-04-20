@@ -56,27 +56,22 @@ public class Config {
         public General(ModConfigSpec.Builder builder) {
             builder.push("wanderingpets");
             enableBehaviorCats = builder
-                    .comment("Enable toggle wander behavior for cats")
+                    .comment(" Enable toggle wander behavior for cats")
                     .define("enableBehaviorCats", true);
-            builder.comment("");
             enableBehaviorWolves = builder
-                    .comment("Enable toggle wander behavior for wolves")
+                    .comment(" Enable toggle wander behavior for wolves")
                     .define("enableBehaviorWolves", true);
-            builder.comment("");
             enableBehaviorParrots = builder
-                    .comment("Enable toggle wander behavior for parrots")
+                    .comment(" Enable toggle wander behavior for parrots")
                     .define("enableBehaviorParrots", true);
-            builder.comment("");
             betterCatBehavior = builder
-                    .comment("Enhance cats' wander behavior, making them alternate between sitting, sleeping and wandering from time to time")
+                    .comment(" Enhance cats' wander behavior, making them alternate between sitting, sleeping and wandering from time to time")
                     .define("betterCatBehavior", true);
-            builder.comment("");
             catsRelaxingCooldown = builder
-                    .comment("(Default: 1600 | Range: 200~8000) Lower values makes cats sleep and sit more, higher values makes them wander more. Only applies if betterCatBehavior is enabled.")
+                    .comment(" Lower values makes cats sleep and sit more, higher values makes them wander more. Only applies if betterCatBehavior is enabled.")
                     .defineInRange("catsRelaxingCooldown", 1600, 200, 8000);
-            builder.comment("");
             debugMode = builder
-                    .comment("Should log stuff")
+                    .comment(" Should log stuff")
                     .define("debugMode", false);
 
             builder.pop();
