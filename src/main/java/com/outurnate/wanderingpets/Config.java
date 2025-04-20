@@ -13,7 +13,7 @@ public class Config {
     public static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
     public static final General GENERAL = new General(BUILDER);
     public static final ModConfigSpec CONFIG_SPEC = BUILDER.build();
-    private static List<EntityType<?>> ENABLED_ENTITY_TYPES = List.of();
+    public static List<EntityType<?>> ENABLED_ENTITY_TYPES = List.of();
 
     public static boolean isWanderBehaviorEnabled(Entity entity) {
         return ENABLED_ENTITY_TYPES.contains(entity.getType());
@@ -34,6 +34,7 @@ public class Config {
                         EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(id);
                         result.add(type);
                     } catch (Exception ignored) {
+                        log("Entity id {} not found, ignoring it...", o);
                     }
                 }
             }

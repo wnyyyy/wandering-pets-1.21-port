@@ -5,13 +5,14 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.goal.FollowOwnerGoal;
+import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.WrappedGoal;
+import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
+import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.fml.LogicalSide;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
@@ -22,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -73,27 +75,105 @@ public class WanderingPets {
 
             if (currentList.isEmpty()) {
                 Config.GENERAL.moddedEntities.set(List.copyOf(detectedTamable));
-                Config.log("Detected modded possibly tamable mobs: {}", detectedTamable);
+                Config.log("Detected modded possibly compatible mobs: {}", detectedTamable);
                 Config.CONFIG_SPEC.save();
             }
         }
     }
 
-    public void onLevelLoad(LevelEvent.Load event) {
-        if (Config.GENERAL.moddedEntities.get().isEmpty() && event.getLevel() instanceof ServerLevel level) {
-            regenerateModdedEntitiesList(level);
+    private boolean hasWeakCompatibility(Mob entity) {
+        return entity.goalSelector.getAvailableGoals().stream()
+                .anyMatch(g -> isFollowOwnerLikeGoal(g.getGoal())) &&
+                entity.goalSelector.getAvailableGoals().stream()
+                        .anyMatch(g -> g.getGoal() instanceof RandomStrollGoal);
+    }
+
+    private boolean isFollowOwnerLikeGoal(Object goal) {
+        try {
+            Class<?> clazz = goal.getClass();
+
+            boolean hasOwnerField = false;
+            boolean hasNavigatorField = false;
+
+            for (var field : clazz.getDeclaredFields()) {
+                field.setAccessible(true);
+                Object value = field.get(goal);
+
+                if (field.getName().toLowerCase().contains("owner")) {
+                    hasOwnerField = true;
+                }
+
+                if (value instanceof GroundPathNavigation ||
+                        value instanceof FlyingPathNavigation) {
+                    hasNavigatorField = true;
+                }
+
+                if (hasOwnerField && hasNavigatorField) break;
+            }
+
+            if (!hasOwnerField || !hasNavigatorField) return false;
+
+            if (goal instanceof Goal g) {
+                var flags = g.getFlags();
+                return flags.contains(Goal.Flag.MOVE)
+                        && flags.contains(Goal.Flag.LOOK);
+            }
+        } catch (Exception ignored) {
         }
-        Config.rebuildEnabledEntityTypes();
+
+        return false;
+    }
+
+    public void onLevelLoad(LevelEvent.Load event) {
+        if (event.getLevel() instanceof ServerLevel level) {
+            if (Config.GENERAL.moddedEntities.get().isEmpty()) {
+                regenerateModdedEntitiesList(level);
+            }
+            Config.rebuildEnabledEntityTypes();
+            for (EntityType<?> type : Config.ENABLED_ENTITY_TYPES) {
+                try {
+                    Mob entity = (Mob) type.create(level);
+                    if (entity == null || !hasWeakCompatibility(entity)) throw new Exception();
+                } catch (Exception e) {
+                    Config.log("Attempted to load entity type {}, but it doesn't seems to be compatible. Ignoring it...", type);
+                }
+            }
+        }
     }
 
     public void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
-        if (event.getSide() == LogicalSide.SERVER &&
-                event.getTarget() instanceof TamableAnimal mob &&
+        if (!(event.getLevel() instanceof ServerLevel)) return;
+        if (event.getTarget() instanceof Mob mob &&
                 Config.isWanderBehaviorEnabled(mob) &&
                 event.getEntity() instanceof Player player &&
-                player.isShiftKeyDown() &&
-                player.getUUID().equals(mob.getOwnerUUID())) {
+                player.isShiftKeyDown()) {
 
+            Entity owner = null;
+            if (mob instanceof TamableAnimal tamable) {
+                owner = tamable.getOwner();
+            } else {
+                Optional<WrappedGoal> followLikeGoal = mob.goalSelector.getAvailableGoals().stream().filter(g -> isFollowOwnerLikeGoal(g.getGoal())).findFirst();
+                if (followLikeGoal.isEmpty()) {
+                    return;
+                }
+                try {
+                    Goal goal = followLikeGoal.get().getGoal();
+                    Class<?> clazz = goal.getClass();
+                    for (var field : clazz.getDeclaredFields()) {
+                        if (field.getName().toLowerCase().contains("owner")) {
+                            field.setAccessible(true);
+                            Object value = field.get(goal);
+                            owner = (Entity) value;
+                        }
+                    }
+                } catch (Exception e) {
+                    Config.log("Failed to patch {} behavior.", mob.getName());
+                    return;
+                }
+            }
+            if (owner == null || !owner.getUUID().equals(player.getUUID())) {
+                return;
+            }
             IFollowsAccessor followsAccessor = (IFollowsAccessor) mob;
             boolean shouldFollow = !followsAccessor.isAllowedToFollow();
             followsAccessor.setAllowedToFollow(shouldFollow);
