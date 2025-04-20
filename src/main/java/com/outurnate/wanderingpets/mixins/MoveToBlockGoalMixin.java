@@ -39,16 +39,16 @@ public abstract class MoveToBlockGoalMixin {
             boolean canContinue = true;
             if ((Object) this instanceof CatSitOnBlockGoal) {
                 wpets$sittingTicks++;
-                canContinue = wpets$sittingTicks <= 400;
+                canContinue = wpets$sittingTicks <= Config.CatsRelaxingProfile.sitDur();
                 if (wpets$sittingTicks % 50 == 0) {
-                    Config.log("canContinueToUse - Sit | {}/{}", wpets$sittingTicks, 800);
+                    Config.log("canContinueToUse - Sit | {}/{}", wpets$sittingTicks, Config.CatsRelaxingProfile.sitDur());
                 }
                 catAccessor.setNotSittedTicks(0);
             } else if ((Object) this instanceof CatLieOnBedGoal) {
                 wpets$sleepingTicks++;
-                canContinue = wpets$sleepingTicks <= 800;
+                canContinue = wpets$sleepingTicks <= Config.CatsRelaxingProfile.sleepDur();
                 if (wpets$sleepingTicks % 50 == 0) {
-                    Config.log("canContinueToUse - Sleep | {}/{}", wpets$sleepingTicks, 800);
+                    Config.log("canContinueToUse - Sleep | {}/{}", wpets$sleepingTicks, Config.CatsRelaxingProfile.sleepDur());
                 }
                 catAccessor.setNotSleptTicks(0);
             }
@@ -67,9 +67,9 @@ public abstract class MoveToBlockGoalMixin {
             ICatWanderBehaviorAccessor catAccessor = (ICatWanderBehaviorAccessor) mob;
             boolean canUse = true;
             if ((Object) this instanceof CatSitOnBlockGoal) {
-                canUse = catAccessor.getNotSittedTicks() > 1600;
+                canUse = catAccessor.getNotSittedTicks() > Config.CatsRelaxingProfile.sitCd();
             } else if ((Object) this instanceof CatLieOnBedGoal) {
-                canUse = catAccessor.getNotSleptTicks() > 3200;
+                canUse = catAccessor.getNotSleptTicks() > Config.CatsRelaxingProfile.sleepCd();
             }
             if (!canUse) {
                 wpets$sittingTicks = 0;

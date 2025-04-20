@@ -24,12 +24,33 @@ public class Config {
         }
     }
 
+    public static class CatsRelaxingProfile {
+        private static final int base = GENERAL.catsRelaxingCooldown.get();
+
+        public static int sitCd() {
+            return base;
+        }
+
+        public static int sitDur() {
+            return base/4;
+        }
+
+        public static int sleepCd() {
+            return base * 4;
+        }
+
+        public static int sleepDur() {
+            return base;
+        }
+    }
+
     public static class General {
 
         public final ModConfigSpec.BooleanValue enableBehaviorCats;
         public final ModConfigSpec.BooleanValue enableBehaviorWolves;
         public final ModConfigSpec.BooleanValue enableBehaviorParrots;
         public final ModConfigSpec.BooleanValue betterCatBehavior;
+        public final ModConfigSpec.ConfigValue<Integer> catsRelaxingCooldown;
         public final ModConfigSpec.BooleanValue debugMode;
 
         public General(ModConfigSpec.Builder builder) {
@@ -49,6 +70,10 @@ public class Config {
             betterCatBehavior = builder
                     .comment("Enhance cats' wander behavior, making them alternate between sitting, sleeping and wandering from time to time")
                     .define("betterCatBehavior", true);
+            builder.comment("");
+            catsRelaxingCooldown = builder
+                    .comment("(Default: 1600 | Range: 200~8000) Lower values makes cats sleep and sit more, higher values makes them wander more. Only applies if betterCatBehavior is enabled.")
+                    .defineInRange("catsRelaxingCooldown", 1600, 200, 8000);
             builder.comment("");
             debugMode = builder
                     .comment("Should log stuff")
