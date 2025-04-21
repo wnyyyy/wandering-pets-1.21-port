@@ -14,6 +14,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.Optional;
+
 @Mixin(TamableAnimal.class)
 public abstract class TamableEntityMixin extends Animal implements IFollowsAccessor {
 
@@ -35,7 +37,7 @@ public abstract class TamableEntityMixin extends Animal implements IFollowsAcces
 
     @Inject(at = @At("TAIL"), method = "readAdditionalSaveData")
     protected void onReadAdditionalSaveData(CompoundTag tag, CallbackInfo ci) {
-        this.entityData.set(FOLLOWS, tag.getBoolean("DoesFollow"));
+        tag.getBoolean("DoesFollow").ifPresent(follows -> this.entityData.set(FOLLOWS, follows));
     }
 
     @Override
