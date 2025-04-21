@@ -51,7 +51,7 @@ public class WanderingPets {
         for (EntityType<?> type : BuiltInRegistries.ENTITY_TYPE) {
             if (vanillaTamable.contains(type.getDescriptionId())) continue;
             try {
-                Mob entity = (Mob) type.create(level);
+                Mob entity = (Mob) type.create(level, EntitySpawnReason.COMMAND);
                 if (entity == null) continue;
 
                 boolean hasFollowGoal = entity.goalSelector.getAvailableGoals().stream()
@@ -132,7 +132,7 @@ public class WanderingPets {
             Config.rebuildEnabledEntityTypes();
             for (EntityType<?> type : Config.ENABLED_ENTITY_TYPES) {
                 try {
-                    Mob entity = (Mob) type.create(level);
+                    Mob entity = (Mob) type.create(level, EntitySpawnReason.COMMAND);
                     if (entity == null || !hasWeakCompatibility(entity)) throw new Exception();
                 } catch (Exception e) {
                     Config.log("Attempted to load entity type {}, but it doesn't seems to be compatible. Ignoring it...", type);
@@ -178,9 +178,9 @@ public class WanderingPets {
             boolean shouldFollow = !followsAccessor.isAllowedToFollow();
             followsAccessor.setAllowedToFollow(shouldFollow);
 
-            player.sendSystemMessage(Component.translatable(
+            player.displayClientMessage(Component.translatable(
                     shouldFollow ? "wanderingpets.follow" : "wanderingpets.unfollow", mob.getName()
-            ));
+            ), false);
 
             event.setCanceled(true);
         }

@@ -1,5 +1,6 @@
 package com.outurnate.wanderingpets;
 
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -7,6 +8,7 @@ import net.minecraft.world.entity.EntityType;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.List;
+import java.util.Optional;
 
 public class Config {
 
@@ -31,8 +33,11 @@ public class Config {
                 if (o instanceof String s) {
                     try {
                         ResourceLocation id = ResourceLocation.parse(s);
-                        EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(id);
-                        result.add(type);
+                        Optional<Holder.Reference<EntityType<?>>> type = BuiltInRegistries.ENTITY_TYPE.get(id);
+                        if (type.isEmpty()) {
+                            throw new Exception();
+                        }
+                        result.add(type.get().value());
                     } catch (Exception ignored) {
                         log("Entity id {} not found, ignoring it...", o);
                     }
