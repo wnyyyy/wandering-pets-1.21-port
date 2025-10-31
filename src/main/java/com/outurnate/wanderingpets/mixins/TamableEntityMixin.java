@@ -9,6 +9,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -31,13 +33,14 @@ public abstract class TamableEntityMixin extends Animal implements IFollowsAcces
     }
 
     @Inject(at = @At("TAIL"), method = "addAdditionalSaveData")
-    protected void onAddAdditionalSaveData(CompoundTag tag, CallbackInfo ci) {
-        tag.putBoolean("DoesFollow", this.entityData.get(FOLLOWS));
+    protected void onAddAdditionalSaveData(ValueOutput output, CallbackInfo ci) {
+        output.putBoolean("DoesFollow", this.entityData.get(FOLLOWS));
     }
 
     @Inject(at = @At("TAIL"), method = "readAdditionalSaveData")
-    protected void onReadAdditionalSaveData(CompoundTag tag, CallbackInfo ci) {
-        tag.getBoolean("DoesFollow").ifPresent(follows -> this.entityData.set(FOLLOWS, follows));
+    protected void onReadAdditionalSaveData(ValueInput input, CallbackInfo ci) {
+        boolean follows = input.getBooleanOr("DoesFollow", true);
+        this.entityData.set(FOLLOWS, follows);
     }
 
     @Override
