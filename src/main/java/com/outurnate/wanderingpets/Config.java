@@ -30,7 +30,7 @@ public class Config {
         boolean enableBehaviorWolves = true;
         boolean enableBehaviorParrots = true;
         boolean betterCatBehavior = true;
-        int catsRelaxingCooldown = 1600;
+        int catsRelaxingCooldown = 800;
         boolean debugMode = false;
         boolean enableModdedEntities = true;
         List<String> moddedEntities = new ArrayList<>();

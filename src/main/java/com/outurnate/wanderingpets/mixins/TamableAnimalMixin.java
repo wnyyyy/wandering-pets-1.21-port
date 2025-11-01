@@ -1,7 +1,6 @@
 package com.outurnate.wanderingpets.mixins;
 
 import com.outurnate.wanderingpets.interfaces.IFollowsAccessor;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.animal.Animal;
@@ -41,6 +40,6 @@ public abstract class TamableAnimalMixin extends Animal implements IFollowsAcces
 
     @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
     private void onReadAdditionalSaveData(ValueInput input, CallbackInfo ci) {
-        input.getBooleanOr(ALLOWED_TO_FOLLOW_KEY, this.allowedToFollow);
+        this.allowedToFollow = input.getBooleanOr(ALLOWED_TO_FOLLOW_KEY, true);
     }
 }

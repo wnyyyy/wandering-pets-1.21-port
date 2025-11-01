@@ -9,6 +9,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.goal.FollowOwnerGoal;
@@ -30,6 +31,7 @@ public class WanderingPets implements ModInitializer {
 
     public static final String MODID = "wanderingpets";
     public static final Logger LOGGER = LoggerFactory.getLogger("WanderingPets");
+    private long lastUse  = 0;
 
     @Override
     public void onInitialize() {
@@ -40,11 +42,21 @@ public class WanderingPets implements ModInitializer {
         });
 
         UseEntityCallback.EVENT.register((player, level, hand, entity, hitResult) -> {
-            if (level.isClientSide() || !player.isShiftKeyDown() || !(entity instanceof Mob)) {
+            if (level.isClientSide() || hand != InteractionHand.MAIN_HAND || !player.isShiftKeyDown() || !(entity instanceof Mob) || player.isSpectator() || hitResult == null) {
+                return InteractionResult.PASS;
+            }
+            long currentTime = level.getGameTime();
+
+            if (currentTime - lastUse < 20) {
                 return InteractionResult.PASS;
             }
 
-            return this.onEntityInteract(player, (Mob) entity);
+            InteractionResult result = this.onEntityInteract(player, (Mob) entity);
+
+            if (result.consumesAction()) {
+                lastUse = currentTime;
+            }
+            return result;
         });
     }
 
@@ -63,7 +75,7 @@ public class WanderingPets implements ModInitializer {
         }
     }
 
-    private InteractionResult onEntityInteract(Player player, Mob mob) {
+    public InteractionResult onEntityInteract(Player player, Mob mob) {
         if (Config.isWanderBehaviorEnabled(mob)) {
             Entity owner = null;
             if (mob instanceof TamableAnimal tamable) {
@@ -106,6 +118,10 @@ public class WanderingPets implements ModInitializer {
             player.displayClientMessage(Component.translatable(
                     shouldFollow ? "wanderingpets.follow" : "wanderingpets.unfollow", mob.getName()
             ), false);
+
+            if (mob instanceof TamableAnimal tamable) {
+                tamable.setInSittingPose(false);
+            }
 
             return InteractionResult.SUCCESS;
         }
