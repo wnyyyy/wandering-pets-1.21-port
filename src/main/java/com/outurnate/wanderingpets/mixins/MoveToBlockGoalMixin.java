@@ -32,19 +32,21 @@ public abstract class MoveToBlockGoalMixin {
     @Unique
     private int wpets$sleepingTicks = 0;
 
+    @SuppressWarnings("ConstantConditions")
     @Inject(at = @At("TAIL"), method = "canContinueToUse", cancellable = true)
     public void canContinueToUse(CallbackInfoReturnable<Boolean> cir) {
-        if (Config.GENERAL.betterCatBehavior.get() && mob instanceof Cat && ((Cat) mob).isTame() && ((Cat) mob).getOwner() != null && reachedTarget) {
+        if (Config.isBetterCatBehaviorEnabled() && mob instanceof Cat && ((Cat) mob).isTame() && ((Cat) mob).getOwner() != null && reachedTarget) {
             ICatWanderBehaviorAccessor catAccessor = (ICatWanderBehaviorAccessor) mob;
             boolean canContinue = true;
-            if ((Object) this instanceof CatSitOnBlockGoal) {
+            MoveToBlockGoal self = (MoveToBlockGoal) (Object) this;
+            if (self instanceof CatSitOnBlockGoal) {
                 wpets$sittingTicks++;
                 canContinue = wpets$sittingTicks <= Config.CatsRelaxingProfile.sitDur();
                 if (wpets$sittingTicks % 50 == 0) {
                     Config.log("canContinueToUse - Sit | {}/{}", wpets$sittingTicks, Config.CatsRelaxingProfile.sitDur());
                 }
                 catAccessor.setNotSittedTicks(0);
-            } else if ((Object) this instanceof CatLieOnBedGoal) {
+            } else if (self instanceof CatLieOnBedGoal) {
                 wpets$sleepingTicks++;
                 canContinue = wpets$sleepingTicks <= Config.CatsRelaxingProfile.sleepDur();
                 if (wpets$sleepingTicks % 50 == 0) {
@@ -61,17 +63,20 @@ public abstract class MoveToBlockGoalMixin {
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Inject(at = @At("TAIL"), method = "canUse", cancellable = true)
     public void canUse(CallbackInfoReturnable<Boolean> cir) {
-        if (Config.GENERAL.betterCatBehavior.get() && mob instanceof Cat && ((Cat) mob).isTame() && ((Cat) mob).getOwner() != null) {
+        if (Config.isBetterCatBehaviorEnabled() && mob instanceof Cat && ((Cat) mob).isTame() && ((Cat) mob).getOwner() != null) {
             ICatWanderBehaviorAccessor catAccessor = (ICatWanderBehaviorAccessor) mob;
-            boolean canUse = true;
-            if ((Object) this instanceof CatSitOnBlockGoal) {
-                canUse = catAccessor.getNotSittedTicks() > Config.CatsRelaxingProfile.sitCd();
-            } else if ((Object) this instanceof CatLieOnBedGoal) {
-                canUse = catAccessor.getNotSleptTicks() > Config.CatsRelaxingProfile.sleepCd();
+            boolean bCanUse = true;
+            MoveToBlockGoal self = (MoveToBlockGoal) (Object) this;
+
+            if (self instanceof CatSitOnBlockGoal) {
+                bCanUse = catAccessor.getNotSittedTicks() > Config.CatsRelaxingProfile.sitCd();
+            } else if (self instanceof CatLieOnBedGoal) {
+                bCanUse = catAccessor.getNotSleptTicks() > Config.CatsRelaxingProfile.sleepCd();
             }
-            if (!canUse) {
+            if (!bCanUse) {
                 wpets$sittingTicks = 0;
                 wpets$sleepingTicks = 0;
                 cir.setReturnValue(false);
@@ -80,16 +85,20 @@ public abstract class MoveToBlockGoalMixin {
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Inject(at = @At("HEAD"), method = "acceptedDistance", cancellable = true)
     public void acceptedDistance(CallbackInfoReturnable<Double> cir) {
-        if (Config.GENERAL.betterCatBehavior.get() && mob instanceof Cat cat && cat.isTame() && cat.getOwner() != null && (Object) this instanceof CatLieOnBedGoal) {
+        MoveToBlockGoal self = (MoveToBlockGoal) (Object) this;
+        if (Config.isBetterCatBehaviorEnabled() && mob instanceof Cat cat && cat.isTame() && cat.getOwner() != null &&  self instanceof CatLieOnBedGoal) {
             cir.setReturnValue(1.45);
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     @ModifyVariable(method = "findNearestBlock", at = @At("STORE"), ordinal = 0, index = 1)
     private int overrideSearchRange(int original) {
-        if (Config.GENERAL.betterCatBehavior.get() && ((Object) this instanceof CatLieOnBedGoal || (Object) this instanceof CatSitOnBlockGoal)) {
+        MoveToBlockGoal self = (MoveToBlockGoal) (Object) this;
+        if (Config.isBetterCatBehaviorEnabled() && (self instanceof CatLieOnBedGoal || self instanceof CatSitOnBlockGoal)) {
             return 24;
         }
         return original;

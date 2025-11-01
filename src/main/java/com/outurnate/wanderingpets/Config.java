@@ -1,60 +1,129 @@
 package com.outurnate.wanderingpets;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraft.world.entity.Mob;
 
-import java.util.List;
-import java.util.Optional;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Config {
 
-    public static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
-    public static final General GENERAL = new General(BUILDER);
-    public static final ModConfigSpec CONFIG_SPEC = BUILDER.build();
-    public static List<EntityType<?>> ENABLED_ENTITY_TYPES = List.of();
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Path CONFIG_FILE = FabricLoader.getInstance().getConfigDir().resolve("wanderingpets.json");
 
-    public static boolean isWanderBehaviorEnabled(Entity entity) {
-        return ENABLED_ENTITY_TYPES.contains(entity.getType());
+    private static ConfigData configData = new ConfigData();
+
+    public static Set<EntityType<?>> ENABLED_ENTITY_TYPES = Collections.emptySet();
+
+    private static class ConfigData {
+        boolean enableBehaviorCats = true;
+        boolean enableBehaviorWolves = true;
+        boolean enableBehaviorParrots = true;
+        boolean betterCatBehavior = true;
+        int catsRelaxingCooldown = 1600;
+        boolean debugMode = false;
+        boolean enableModdedEntities = true;
+        List<String> moddedEntities = new ArrayList<>();
+    }
+
+    public static void loadConfig() {
+        boolean needsSave = false;
+        try (FileReader reader = new FileReader(CONFIG_FILE.toFile())) {
+            configData = GSON.fromJson(reader, ConfigData.class);
+            if (configData == null) {
+                configData = new ConfigData();
+                needsSave = true;
+            }
+        } catch (IOException e) {
+            configData = new ConfigData();
+            needsSave = true;
+        }
+
+        if (needsSave) {
+            saveConfig();
+        }
+        rebuildEnabledEntityTypes();
+    }
+
+    public static void saveConfig() {
+        try (FileWriter writer = new FileWriter(CONFIG_FILE.toFile())) {
+            GSON.toJson(configData, writer);
+        } catch (IOException e) {
+            WanderingPets.LOGGER.error("Could not save config file!", e);
+        }
     }
 
     public static void rebuildEnabledEntityTypes() {
-        List<EntityType<?>> result = new java.util.ArrayList<>();
+        List<String> allEnabled = new ArrayList<>();
 
-        if (GENERAL.enableBehaviorCats.get()) result.add(EntityType.CAT);
-        if (GENERAL.enableBehaviorWolves.get()) result.add(EntityType.WOLF);
-        if (GENERAL.enableBehaviorParrots.get()) result.add(EntityType.PARROT);
+        if (configData.enableBehaviorCats) allEnabled.add("minecraft:cat");
+        if (configData.enableBehaviorWolves) allEnabled.add("minecraft:wolf");
+        if (configData.enableBehaviorParrots) allEnabled.add("minecraft:parrot");
 
-        if (GENERAL.enableModdedEntities.get()) {
-            for (Object o : GENERAL.moddedEntities.get()) {
-                if (o instanceof String s) {
-                    try {
-                        ResourceLocation id = ResourceLocation.parse(s);
-                        Optional<Holder.Reference<EntityType<?>>> type = BuiltInRegistries.ENTITY_TYPE.get(id);
-                        if (type.isEmpty()) {
-                            throw new Exception();
-                        }
-                        result.add(type.get().value());
-                    } catch (Exception ignored) {
-                        log("Entity id {} not found, ignoring it...", o);
-                    }
-                }
-            }
+        if (configData.enableModdedEntities) {
+            allEnabled.addAll(configData.moddedEntities);
         }
-        ENABLED_ENTITY_TYPES = List.copyOf(result);
+
+        ENABLED_ENTITY_TYPES = allEnabled.stream()
+                .map(id -> {
+                    try {
+                        return ResourceLocation.tryParse(id);
+                    } catch (Exception e) {
+                        log("Invalid entity ID format in config: {}", id);
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .map(id -> {
+                    Optional<Holder.Reference<EntityType<?>>> type = BuiltInRegistries.ENTITY_TYPE.get(id);
+                    if (type.isEmpty()) {
+                        log("Entity id {} not found, ignoring it...", id);
+                        return null;
+                    }
+                    return type.get().value();
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+    }
+
+    public static boolean isWanderBehaviorEnabled(Mob mob) {
+        return ENABLED_ENTITY_TYPES.contains(mob.getType());
     }
 
     public static void log(String format, Object... args) {
-        if (GENERAL.debugMode.get()) {
+        if (configData.debugMode) {
             WanderingPets.LOGGER.info(format, args);
         }
     }
 
+    public static List<String> getModdedEntities() {
+        return configData.moddedEntities;
+    }
+
+    public static void setModdedEntities(List<String> entities) {
+        configData.moddedEntities = new ArrayList<>(entities);
+    }
+
+    public static boolean isBetterCatBehaviorEnabled() {
+        return configData.betterCatBehavior;
+    }
+
+    public static boolean isDebugMode() {
+        return configData.debugMode;
+    }
+
     public static class CatsRelaxingProfile {
-        private static final int base = GENERAL.catsRelaxingCooldown.get();
+        private static final int base = configData.catsRelaxingCooldown;
 
         public static int sitCd() {
             return base;
@@ -72,61 +141,5 @@ public class Config {
             return base;
         }
     }
-
-    public static class General {
-
-        public final ModConfigSpec.BooleanValue enableBehaviorCats;
-        public final ModConfigSpec.BooleanValue enableBehaviorWolves;
-        public final ModConfigSpec.BooleanValue enableBehaviorParrots;
-        public final ModConfigSpec.BooleanValue betterCatBehavior;
-        public final ModConfigSpec.ConfigValue<Integer> catsRelaxingCooldown;
-        public final ModConfigSpec.BooleanValue debugMode;
-        public final ModConfigSpec.BooleanValue enableModdedEntities;
-        public final ModConfigSpec.ConfigValue<List<?>> moddedEntities;
-
-
-        public General(ModConfigSpec.Builder builder) {
-            builder.push("wanderingpets");
-            enableBehaviorCats = builder
-                    .comment(" Enable toggle wander behavior for cats")
-                    .define("enableBehaviorCats", true);
-            enableBehaviorWolves = builder
-                    .comment(" Enable toggle wander behavior for wolves")
-                    .define("enableBehaviorWolves", true);
-            enableBehaviorParrots = builder
-                    .comment(" Enable toggle wander behavior for parrots")
-                    .define("enableBehaviorParrots", true);
-            betterCatBehavior = builder
-                    .comment(" Enhance cats' wander behavior, making them alternate between sitting, sleeping and wandering from time to time")
-                    .define("betterCatBehavior", true);
-            catsRelaxingCooldown = builder
-                    .comment(" Lower values makes cats sleep and sit more, higher values makes them wander more. Only applies if betterCatBehavior is enabled.")
-                    .defineInRange("catsRelaxingCooldown", 1600, 200, 8000);
-            enableModdedEntities = builder
-                    .comment(" Enable mod behavior for possibly compatible modded entities")
-                    .define("enableModdedEntities", true);
-            moddedEntities = builder
-                    .comment(" List of modded mobs that should use mod behavior. If left empty, will search for possibly compatible entities. Format: modid:entity_id")
-                    .defineListAllowEmpty(
-                            "moddedEntities",
-                            List::of,
-                            List::of,
-                            o -> {
-                                if (!(o instanceof String s)) return false;
-                                try {
-                                    ResourceLocation.parse(s);
-                                    return true;
-                                } catch (Exception e) {
-                                    return false;
-                                }
-                            }
-                    );
-
-            debugMode = builder
-                    .comment(" Should log stuff")
-                    .define("debugMode", false);
-
-            builder.pop();
-        }
-    }
 }
+

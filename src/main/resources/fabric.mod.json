@@ -1,0 +1,25 @@
+{
+	"schemaVersion": 1,
+	"id": "wanderingpets",
+	"version": "${version}",
+	"name": "Wandering Pets",
+	"description": "Configurable mod to disable tamed wolves, parrots, and cats from following the player",
+	"authors": [
+		"outurnate",
+		"wnyyy"
+	],
+	"entrypoints": {
+		"main": [
+			"com.outurnate.wanderingpets.WanderingPets"
+		]
+	},
+	"mixins": [
+		"wanderingpets.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.17.3",
+		"minecraft": "~1.21.10",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}

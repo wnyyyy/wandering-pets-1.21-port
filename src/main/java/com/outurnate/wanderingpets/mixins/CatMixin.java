@@ -33,10 +33,10 @@ public abstract class CatMixin extends TamableAnimal implements ICatWanderBehavi
 
     @Inject(at = @At("HEAD"), method = "tick")
     public void tick(CallbackInfo ci) {
-        if (Config.GENERAL.betterCatBehavior.get() && this.isTame() && this.getOwner() != null) {
+        if (Config.isBetterCatBehaviorEnabled() && this.isTame() && this.getOwner() != null) {
             wpets$notSittedTicks++;
             wpets$notSleptTicks++;
-            if (Config.GENERAL.debugMode.get() && this.tickCount % 50 == 0) {
+            if (Config.isDebugMode() && this.tickCount % 50 == 0) {
                 Set<WrappedGoal> allGoals = this.goalSelector.getAvailableGoals();
                 allGoals.stream().filter(goal -> goal.getGoal() instanceof CatLieOnBedGoal).findFirst().ifPresent(lieOnBed ->
                         Config.log("LieOnBed | Running: {} | notSlept: {}", lieOnBed.isRunning(), wpets$notSleptTicks));

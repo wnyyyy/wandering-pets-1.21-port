@@ -1,11 +1,15 @@
 package com.outurnate.wanderingpets;
 
-import com.outurnate.wanderingpets.data.ModAttachments;
 import com.outurnate.wanderingpets.interfaces.IFollowsAccessor;
+import com.outurnate.wanderingpets.interfaces.IMobAccessor;
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.goal.FollowOwnerGoal;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -14,12 +18,6 @@ import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.config.ModConfig;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
-import net.neoforged.neoforge.event.level.LevelEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,18 +26,90 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
-@Mod(WanderingPets.MODID)
-public class WanderingPets {
+public class WanderingPets implements ModInitializer {
 
     public static final String MODID = "wanderingpets";
     public static final Logger LOGGER = LoggerFactory.getLogger("WanderingPets");
 
-    public WanderingPets(ModContainer modContainer) {
-        modContainer.registerConfig(ModConfig.Type.COMMON, Config.CONFIG_SPEC);
+    @Override
+    public void onInitialize() {
+        Config.loadConfig();
 
-        NeoForge.EVENT_BUS.addListener(this::onEntityInteract);
-        NeoForge.EVENT_BUS.addListener(this::onLevelLoad);
-        ModAttachments.register(modContainer.getEventBus());
+        ServerWorldEvents.LOAD.register((server, level) -> {
+            this.onLevelLoad(level);
+        });
+
+        UseEntityCallback.EVENT.register((player, level, hand, entity, hitResult) -> {
+            if (level.isClientSide() || !player.isShiftKeyDown() || !(entity instanceof Mob)) {
+                return InteractionResult.PASS;
+            }
+
+            return this.onEntityInteract(player, (Mob) entity);
+        });
+    }
+
+    private void onLevelLoad(ServerLevel level) {
+        if (Config.getModdedEntities().isEmpty()) {
+            regenerateModdedEntitiesList(level);
+        }
+        Config.rebuildEnabledEntityTypes();
+        for (EntityType<?> type : Config.ENABLED_ENTITY_TYPES) {
+            try {
+                Mob entity = (Mob) type.create(level, EntitySpawnReason.COMMAND);
+                if (entity == null || !hasWeakCompatibility(entity)) throw new Exception();
+            } catch (Exception e) {
+                LOGGER.warn("Attempted to load entity type {}, but it doesn't seem to be compatible. Ignoring it...", type);
+            }
+        }
+    }
+
+    private InteractionResult onEntityInteract(Player player, Mob mob) {
+        if (Config.isWanderBehaviorEnabled(mob)) {
+            Entity owner = null;
+            if (mob instanceof TamableAnimal tamable) {
+                owner = tamable.getOwner();
+            } else {
+                Optional<WrappedGoal> followLikeGoal = ((IMobAccessor) mob).getGoalSelector().getAvailableGoals().stream()
+                        .filter(g -> isFollowOwnerLikeGoal(g.getGoal()))
+                        .findFirst();
+
+                if (followLikeGoal.isEmpty()) {
+                    return InteractionResult.PASS;
+                }
+                try {
+                    Goal goal = followLikeGoal.get().getGoal();
+                    Class<?> clazz = goal.getClass();
+                    for (var field : clazz.getDeclaredFields()) {
+                        if (field.getName().equalsIgnoreCase("owner")) {
+                            field.setAccessible(true);
+                            Object value = field.get(goal);
+                            if (value instanceof Entity) {
+                                owner = (Entity) value;
+                                break;
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("Failed to patch {} behavior via reflection.", mob.getName());
+                    return InteractionResult.PASS;
+                }
+            }
+
+            if (owner == null || !owner.getUUID().equals(player.getUUID())) {
+                return InteractionResult.PASS;
+            }
+
+            IFollowsAccessor followsAccessor = (IFollowsAccessor) mob;
+            boolean shouldFollow = !followsAccessor.isAllowedToFollow();
+            followsAccessor.setAllowedToFollow(shouldFollow);
+
+            player.displayClientMessage(Component.translatable(
+                    shouldFollow ? "wanderingpets.follow" : "wanderingpets.unfollow", mob.getName()
+            ), false);
+
+            return InteractionResult.SUCCESS;
+        }
+        return InteractionResult.PASS;
     }
 
     private void regenerateModdedEntitiesList(ServerLevel level) {
@@ -56,37 +126,34 @@ public class WanderingPets {
                 Mob entity = (Mob) type.create(level, EntitySpawnReason.COMMAND);
                 if (entity == null) continue;
 
-                boolean hasFollowGoal = entity.goalSelector.getAvailableGoals().stream()
+                boolean hasFollowGoal = ((IMobAccessor) entity).getGoalSelector().getAvailableGoals().stream()
                         .anyMatch(g -> g.getGoal() instanceof FollowOwnerGoal);
-                boolean hasStrollGoal = entity.goalSelector.getAvailableGoals().stream()
+                boolean hasStrollGoal = ((IMobAccessor) entity).getGoalSelector().getAvailableGoals().stream()
                         .anyMatch(g -> g.getGoal() instanceof RandomStrollGoal);
 
                 if (hasFollowGoal && hasStrollGoal) {
-                    Config.log("Found possibly compatible entity: {}", type);
+                    LOGGER.info("Found possibly compatible entity: {}", type);
                     ResourceLocation id = BuiltInRegistries.ENTITY_TYPE.getKey(type);
-                    String idStr = id.toString();
-
-                    detectedTamable.add(idStr);
+                    detectedTamable.add(id.toString());
                 }
             } catch (Exception ignored) {
             }
         }
 
         if (!detectedTamable.isEmpty()) {
-            List<?> currentList = Config.GENERAL.moddedEntities.get();
-
+            List<String> currentList = Config.getModdedEntities();
             if (currentList.isEmpty()) {
-                Config.GENERAL.moddedEntities.set(List.copyOf(detectedTamable));
-                Config.log("Detected modded possibly compatible mobs: {}", detectedTamable);
-                Config.CONFIG_SPEC.save();
+                Config.setModdedEntities(List.copyOf(detectedTamable));
+                LOGGER.info("Detected modded possibly compatible mobs: {}", detectedTamable);
+                Config.saveConfig();
             }
         }
     }
 
     private boolean hasWeakCompatibility(Mob entity) {
-        return entity.goalSelector.getAvailableGoals().stream()
+        return ((IMobAccessor) entity).getGoalSelector().getAvailableGoals().stream()
                 .anyMatch(g -> isFollowOwnerLikeGoal(g.getGoal())) &&
-                entity.goalSelector.getAvailableGoals().stream()
+                ((IMobAccessor) entity).getGoalSelector().getAvailableGoals().stream()
                         .anyMatch(g -> g.getGoal() instanceof RandomStrollGoal);
     }
 
@@ -101,7 +168,7 @@ public class WanderingPets {
                 field.setAccessible(true);
                 Object value = field.get(goal);
 
-                if (field.getName().toLowerCase().contains("owner")) {
+                if (field.getName().equalsIgnoreCase("owner")) {
                     hasOwnerField = true;
                 }
 
@@ -124,67 +191,5 @@ public class WanderingPets {
         }
 
         return false;
-    }
-
-    public void onLevelLoad(LevelEvent.Load event) {
-        if (event.getLevel() instanceof ServerLevel level) {
-            if (Config.GENERAL.moddedEntities.get().isEmpty()) {
-                regenerateModdedEntitiesList(level);
-            }
-            Config.rebuildEnabledEntityTypes();
-            for (EntityType<?> type : Config.ENABLED_ENTITY_TYPES) {
-                try {
-                    Mob entity = (Mob) type.create(level, EntitySpawnReason.COMMAND);
-                    if (entity == null || !hasWeakCompatibility(entity)) throw new Exception();
-                } catch (Exception e) {
-                    Config.log("Attempted to load entity type {}, but it doesn't seems to be compatible. Ignoring it...", type);
-                }
-            }
-        }
-    }
-
-    public void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
-        if (!(event.getLevel() instanceof ServerLevel)) return;
-        if (event.getTarget() instanceof Mob mob &&
-                Config.isWanderBehaviorEnabled(mob) &&
-                event.getEntity() instanceof Player player &&
-                player.isShiftKeyDown()) {
-
-            Entity owner = null;
-            if (mob instanceof TamableAnimal tamable) {
-                owner = tamable.getOwner();
-            } else {
-                Optional<WrappedGoal> followLikeGoal = mob.goalSelector.getAvailableGoals().stream().filter(g -> isFollowOwnerLikeGoal(g.getGoal())).findFirst();
-                if (followLikeGoal.isEmpty()) {
-                    return;
-                }
-                try {
-                    Goal goal = followLikeGoal.get().getGoal();
-                    Class<?> clazz = goal.getClass();
-                    for (var field : clazz.getDeclaredFields()) {
-                        if (field.getName().toLowerCase().contains("owner")) {
-                            field.setAccessible(true);
-                            Object value = field.get(goal);
-                            owner = (Entity) value;
-                        }
-                    }
-                } catch (Exception e) {
-                    Config.log("Failed to patch {} behavior.", mob.getName());
-                    return;
-                }
-            }
-            if (owner == null || !owner.getUUID().equals(player.getUUID())) {
-                return;
-            }
-            IFollowsAccessor followsAccessor = (IFollowsAccessor) mob;
-            boolean shouldFollow = !followsAccessor.isAllowedToFollow();
-            followsAccessor.setAllowedToFollow(shouldFollow);
-
-            player.displayClientMessage(Component.translatable(
-                    shouldFollow ? "wanderingpets.follow" : "wanderingpets.unfollow", mob.getName()
-            ), false);
-
-            event.setCanceled(true);
-        }
     }
 }
