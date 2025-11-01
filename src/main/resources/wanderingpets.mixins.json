@@ -7,7 +7,7 @@
     "CatMixin",
     "FollowOwnerGoalMixin",
     "MoveToBlockGoalMixin",
-    "TamableEntityMixin"
+    "TamableAnimalMixin"
   ],
   "minVersion": "0.8",
   "injectors": {

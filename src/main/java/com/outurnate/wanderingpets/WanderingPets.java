@@ -1,5 +1,6 @@
 package com.outurnate.wanderingpets;
 
+import com.outurnate.wanderingpets.data.ModAttachments;
 import com.outurnate.wanderingpets.interfaces.IFollowsAccessor;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -38,6 +39,7 @@ public class WanderingPets {
 
         NeoForge.EVENT_BUS.addListener(this::onEntityInteract);
         NeoForge.EVENT_BUS.addListener(this::onLevelLoad);
+        ModAttachments.register(modContainer.getEventBus());
     }
 
     private void regenerateModdedEntitiesList(ServerLevel level) {
