@@ -2,7 +2,7 @@ package com.outurnate.wanderingpets;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.neoforged.neoforge.common.ModConfigSpec;
@@ -32,7 +32,7 @@ public class Config {
             for (Object o : GENERAL.moddedEntities.get()) {
                 if (o instanceof String s) {
                     try {
-                        ResourceLocation id = ResourceLocation.parse(s);
+                        Identifier id = Identifier.parse(s);
                         Optional<Holder.Reference<EntityType<?>>> type = BuiltInRegistries.ENTITY_TYPE.get(id);
                         if (type.isEmpty()) {
                             throw new Exception();
@@ -114,7 +114,7 @@ public class Config {
                             o -> {
                                 if (!(o instanceof String s)) return false;
                                 try {
-                                    ResourceLocation.parse(s);
+                                    Identifier.parse(s);
                                     return true;
                                 } catch (Exception e) {
                                     return false;

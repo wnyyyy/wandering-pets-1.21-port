@@ -4,7 +4,7 @@ import com.outurnate.wanderingpets.data.ModAttachments;
 import com.outurnate.wanderingpets.interfaces.IFollowsAccessor;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.goal.FollowOwnerGoal;
@@ -63,7 +63,7 @@ public class WanderingPets {
 
                 if (hasFollowGoal && hasStrollGoal) {
                     Config.log("Found possibly compatible entity: {}", type);
-                    ResourceLocation id = BuiltInRegistries.ENTITY_TYPE.getKey(type);
+                    Identifier id = BuiltInRegistries.ENTITY_TYPE.getKey(type);
                     String idStr = id.toString();
 
                     detectedTamable.add(idStr);
