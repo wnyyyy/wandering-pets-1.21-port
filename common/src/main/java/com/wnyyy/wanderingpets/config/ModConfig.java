@@ -2,7 +2,7 @@ package com.wnyyy.wanderingpets.config;
 
 import com.wnyyy.wanderingpets.Constants;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.*;
 import java.lang.annotation.ElementType;
@@ -46,7 +46,7 @@ public class ModConfig {
         public int catsRelaxingCooldown = 700;
 
         @ConfigValue(description = "Enable mod behavior for possibly compatible modded entities")
-        public boolean enableModdedEntities = false;
+        public boolean enableModdedEntities = true;
 
         @ConfigValue(description = "Should log stuff")
         public boolean debugMode = false;
@@ -114,7 +114,7 @@ public class ModConfig {
         Set<String> blacklistedMods  = Arrays.stream(Constants.BLACKLISTED_MODS.split(":")).collect(Collectors.toSet());
         Set<String> additionalVanilla  = Arrays.stream(Constants.ADDITIONAL_VANILLA_MOBS.split(":")).collect(Collectors.toSet());
 
-        for (ResourceLocation location : BuiltInRegistries.ENTITY_TYPE.keySet()) {
+        for (Identifier location : BuiltInRegistries.ENTITY_TYPE.keySet()) {
 
             if (location.getNamespace().equals("minecraft")) {
                 if (additionalVanilla.isEmpty()) {
@@ -122,7 +122,7 @@ public class ModConfig {
                 }
                 if (additionalVanilla.contains(location.getPath())) {
                     //noinspection unchecked
-                    mobs.add((EntityType<? extends Mob>) BuiltInRegistries.ENTITY_TYPE.get(location));
+                    BuiltInRegistries.ENTITY_TYPE.get(location).ifPresent(type -> mobs.add((EntityType<? extends Mob>) type.value()));
                 }
             }
 
@@ -130,12 +130,12 @@ public class ModConfig {
                 continue;
             }
 
-           entities.add(BuiltInRegistries.ENTITY_TYPE.get(location));
+            BuiltInRegistries.ENTITY_TYPE.get(location).ifPresent(type -> entities.add(type.value()));
         }
 
         for (EntityType<?> entityType : entities) {
             try {
-                Entity example = entityType.create(level);
+                Entity example = entityType.create(level, EntitySpawnReason.COMMAND);
                 if (example instanceof TamableAnimal) {
                     //noinspection unchecked
                     EntityType<? extends Mob> mobType = (EntityType<? extends Mob>) entityType;

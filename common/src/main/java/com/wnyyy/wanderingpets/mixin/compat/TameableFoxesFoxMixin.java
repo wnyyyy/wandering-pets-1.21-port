@@ -2,7 +2,7 @@ package com.wnyyy.wanderingpets.mixin.compat;
 
 import com.wnyyy.wanderingpets.duck.compat.TameableFoxesAccessor;
 import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.world.entity.animal.Fox;
+import net.minecraft.world.entity.animal.fox.Fox;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

@@ -4,7 +4,7 @@ import com.wnyyy.wanderingpets.duck.compat.TameableFoxesAccessor;
 import com.wnyyy.wanderingpets.platform.Services;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.OwnableEntity;
-import net.minecraft.world.entity.animal.Fox;
+import net.minecraft.world.entity.animal.fox.Fox;
 
 import java.util.Objects;
 import java.util.Optional;
