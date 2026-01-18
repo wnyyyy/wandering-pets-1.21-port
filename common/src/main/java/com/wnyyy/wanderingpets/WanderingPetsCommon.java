@@ -1,5 +1,6 @@
 package com.wnyyy.wanderingpets;
 
+import com.wnyyy.wanderingpets.compat.ModCompat;
 import com.wnyyy.wanderingpets.config.ModConfig;
 import com.wnyyy.wanderingpets.duck.IWanderingTamableAccessor;
 import com.wnyyy.wanderingpets.platform.Services;
@@ -9,13 +10,13 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public class WanderingPetsCommon {
     private static long lastUse = 0;
@@ -23,6 +24,7 @@ public class WanderingPetsCommon {
     public static void init() {
         Services.PLATFORM.registerEntityInteractCallback(WanderingPetsCommon::onEntityInteract);
         Services.PLATFORM.registerLevelLoadCallback(WanderingPetsCommon::onLevelLoad);
+        Constants.ADDITIONAL_VANILLA_MOBS = ModCompat.getNewTameableVanilla();
     }
 
     public static void onLevelLoad(ServerLevel level) {
@@ -33,7 +35,7 @@ public class WanderingPetsCommon {
     }
 
     public static InteractionResult onEntityInteract(Player player, Level level, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
-        if (hand != InteractionHand.MAIN_HAND || !player.isShiftKeyDown() || !(entity instanceof TamableAnimal mob) || !ModConfig.isWanderBehaviorEnabled(mob) || player.isSpectator()) {
+        if (hand != InteractionHand.MAIN_HAND || !player.isShiftKeyDown() || !(entity instanceof LivingEntity mob) || !ModConfig.isWanderBehaviorEnabled(mob) || player.isSpectator()) {
             return InteractionResult.PASS;
         }
 
@@ -53,18 +55,14 @@ public class WanderingPetsCommon {
         return InteractionResult.SUCCESS;
     }
 
-    private static Optional<LivingEntity> getOwner(TamableAnimal entity) {
-        return Optional.ofNullable(entity.getOwner());
-    }
-
-    private static InteractionResult handleTameableInteraction(Player player, TamableAnimal mob) {
-        Optional<LivingEntity> maybeOwner = getOwner(mob);
-        if (maybeOwner.isEmpty()) {
+    private static InteractionResult handleTameableInteraction(Player player, LivingEntity mob) {
+        Optional<UUID> maybeOwnerUUID = ModCompat.tryGetOwnerUUID(mob);
+        if (maybeOwnerUUID.isEmpty()) {
             return InteractionResult.PASS;
         }
-        LivingEntity owner = maybeOwner.get();
+        UUID ownerUUID = maybeOwnerUUID.get();
 
-        if (!owner.getUUID().equals(player.getUUID())) {
+        if (!ownerUUID.equals(player.getUUID())) {
             return InteractionResult.PASS;
         }
 
@@ -72,8 +70,10 @@ public class WanderingPetsCommon {
         boolean shouldWander = !shouldFollowAccessor.wanderingpets$shouldWander();
         shouldFollowAccessor.wanderingpets$setShouldWander(shouldWander);
 
+        String name = mob.getType().getDescription().getString();
+
         player.displayClientMessage(Component.translatable(
-                shouldWander ? "wanderingpets.wander" : "wanderingpets.follow", mob.getName()
+                shouldWander ? "wanderingpets.wander" : "wanderingpets.follow", name
         ), false);
 
         return InteractionResult.SUCCESS;

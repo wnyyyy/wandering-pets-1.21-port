@@ -11,6 +11,9 @@ public class CommonMixinPlugin implements IMixinConfigPlugin {
         if (mixinClassName.contains("FriendsAndFoes")) {
             return isClassPresent("com.faboslav.friendsandfoes.common.FriendsAndFoes");
         }
+        if (mixinClassName.contains("TameableFoxes")) {
+            return isClassPresent("lancet_.tameable_foxes.TameableFoxes");
+        }
         return true;
     }
 

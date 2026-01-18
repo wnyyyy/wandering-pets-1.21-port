@@ -9,4 +9,6 @@ public class Constants {
 	public static final String MOD_NAME = "Wandering Pets";
 	public static final String SHOULD_WANDER_KEY = "WanderingPets_shouldWander";
 	public static final Logger LOG = LoggerFactory.getLogger(MOD_NAME);
+	public static final String BLACKLISTED_MODS = "hexerei:";
+	public static String ADDITIONAL_VANILLA_MOBS = "";
 }
