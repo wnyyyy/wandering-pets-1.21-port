@@ -30,6 +30,7 @@ dependencies {
     compileOnly group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.3.5'
     annotationProcessor group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.3.5'
     compileOnly "org.ow2.asm:asm-tree:9.7"
+    compileOnly "maven.modrinth:tameable-foxes:m4hHNZmv"
 }
 
 configurations {
