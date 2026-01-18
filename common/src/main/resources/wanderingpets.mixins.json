@@ -7,11 +7,13 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "FollowOwnerGoalMixin",
-    "TamableAnimalMixin",
+    "LivingEntityMixin",
     "cat.CatMixin",
     "cat.MoveToBlockGoalMixin",
     "compat.FriendsAndFoesTeleportMixin",
-    "compat.StayCloseToTargetMixin"
+    "compat.StayCloseToTargetMixin",
+    "compat.TameableFoxesFoxFollowPlayerMixin",
+    "compat.TameableFoxesFoxMixin"
   ],
   "client": [
   ],

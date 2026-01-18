@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 public interface IPlatformHelper {
     void registerEntityInteractCallback(EntityInteractCallback callback);
     void registerLevelLoadCallback(Consumer<ServerLevel> callback);
+    boolean isModLoaded(String modId);
 
     @FunctionalInterface
     interface EntityInteractCallback {
