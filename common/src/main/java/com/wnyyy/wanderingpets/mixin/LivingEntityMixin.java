@@ -38,7 +38,7 @@ public abstract class LivingEntityMixin implements IWanderingTamableAccessor {
     @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
     private void wanderingpets$loadData(CompoundTag compound, CallbackInfo ci) {
         if (compound.contains(SHOULD_WANDER_KEY)) {
-            this.wanderingpets$shouldWander = compound.getBoolean(SHOULD_WANDER_KEY);
+            this.wanderingpets$shouldWander = compound.getBoolean(SHOULD_WANDER_KEY).orElse(false);
         }
     }
 }
