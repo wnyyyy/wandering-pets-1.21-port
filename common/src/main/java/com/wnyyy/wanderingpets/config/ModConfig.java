@@ -46,7 +46,7 @@ public class ModConfig {
         public int catsRelaxingCooldown = 700;
 
         @ConfigValue(description = "Enable mod behavior for possibly compatible modded entities")
-        public boolean enableModdedEntities = false;
+        public boolean enableModdedEntities = true;
 
         @ConfigValue(description = "Should log stuff")
         public boolean debugMode = false;
