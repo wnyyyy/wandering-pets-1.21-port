@@ -110,7 +110,7 @@ public class ModConfig {
     private static Set<EntityType<? extends Mob>> getModdedMobs(ServerLevel level) {
 
         Set<EntityType<? extends  Mob>> mobs = new HashSet<>();
-        Set<EntityType<?>> entities = new HashSet<>();
+        Set<EntityType<? extends  Mob>> entities = new HashSet<>();
         Set<String> blacklistedMods  = Arrays.stream(Constants.BLACKLISTED_MODS.split(":")).collect(Collectors.toSet());
         Set<String> additionalVanilla  = Arrays.stream(Constants.ADDITIONAL_VANILLA_MOBS.split(":")).collect(Collectors.toSet());
 
@@ -129,17 +129,15 @@ public class ModConfig {
             if (blacklistedMods.contains(location.getNamespace())) {
                 continue;
             }
-
-            BuiltInRegistries.ENTITY_TYPE.get(location).ifPresent(type -> entities.add(type.value()));
+            //noinspection unchecked
+            BuiltInRegistries.ENTITY_TYPE.get(location).ifPresent(type -> entities.add((EntityType<? extends Mob>) type.value()));
         }
 
-        for (EntityType<?> entityType : entities) {
+        for (EntityType<? extends Mob> entityType : entities) {
             try {
                 Entity example = entityType.create(level, EntitySpawnReason.COMMAND);
                 if (example instanceof TamableAnimal) {
-                    //noinspection unchecked
-                    EntityType<? extends Mob> mobType = (EntityType<? extends Mob>) entityType;
-                    mobs.add(mobType);
+                    mobs.add(entityType);
                 }
                 if (example != null) example.discard();
             } catch (Exception ignored) {}
