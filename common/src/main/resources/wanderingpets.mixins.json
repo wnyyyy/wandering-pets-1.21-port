@@ -11,9 +11,7 @@
     "cat.CatMixin",
     "cat.MoveToBlockGoalMixin",
     "compat.FriendsAndFoesTeleportMixin",
-    "compat.StayCloseToTargetMixin",
-    "compat.TameableFoxesFoxFollowPlayerMixin",
-    "compat.TameableFoxesFoxMixin"
+    "compat.StayCloseToTargetMixin"
   ],
   "client": [
   ],
