@@ -13,7 +13,7 @@ import java.util.UUID;
 public class ModCompat {
     public static String getNewTameableVanilla() {
         String newMobs = "";
-        if (Services.PLATFORM.isModLoaded("tameablefoxes")) {
+        if (Services.PLATFORM.isModLoaded("tameablefoxes") || Services.PLATFORM.isModLoaded("tameable-foxes")) {
             newMobs += "fox:";
         }
         return newMobs;
