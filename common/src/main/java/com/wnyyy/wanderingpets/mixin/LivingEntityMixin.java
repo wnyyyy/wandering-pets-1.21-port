@@ -1,9 +1,9 @@
 package com.wnyyy.wanderingpets.mixin;
 
 import com.wnyyy.wanderingpets.duck.IWanderingTamableAccessor;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.OwnableEntity;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -29,16 +29,12 @@ public abstract class LivingEntityMixin implements IWanderingTamableAccessor {
     }
 
     @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
-    private void wanderingpets$saveData(CompoundTag compound, CallbackInfo ci) {
-        if (this instanceof OwnableEntity) {
-            compound.putBoolean(SHOULD_WANDER_KEY, this.wanderingpets$shouldWander);
-        }
+    private void wanderingpets$saveData(ValueOutput output, CallbackInfo ci) {
+        output.putBoolean(SHOULD_WANDER_KEY, this.wanderingpets$shouldWander);
     }
 
     @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
-    private void wanderingpets$loadData(CompoundTag compound, CallbackInfo ci) {
-        if (compound.contains(SHOULD_WANDER_KEY)) {
-            this.wanderingpets$shouldWander = compound.getBoolean(SHOULD_WANDER_KEY).orElse(false);
-        }
+    private void wanderingpets$loadData(ValueInput input, CallbackInfo ci) {
+        this.wanderingpets$shouldWander = input.getBooleanOr(SHOULD_WANDER_KEY, false);
     }
 }
