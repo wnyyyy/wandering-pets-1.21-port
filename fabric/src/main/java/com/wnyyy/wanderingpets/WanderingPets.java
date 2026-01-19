@@ -8,5 +8,6 @@ public class WanderingPets implements ModInitializer {
     @Override
     public void onInitialize() {
         ModConfig.initConfig(FabricModConfig.loadConfig());
+        WanderingPetsCommon.init();
     }
 }
