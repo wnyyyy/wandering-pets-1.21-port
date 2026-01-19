@@ -103,7 +103,7 @@ public abstract class MoveToBlockGoalMixin {
     }
 
     @SuppressWarnings("ConstantConditions")
-    @ModifyVariable(method = "findNearestBlock", at = @At("STORE"), name = "i")
+    @ModifyVariable(method = "findNearestBlock", at = @At("STORE"), ordinal = 0)
     private int overrideSearchRange(int original) {
         MoveToBlockGoal self = (MoveToBlockGoal) (Object) this;
         if (ModConfig.isBetterCatBehaviorEnabled() && (self instanceof CatLieOnBedGoal || self instanceof CatSitOnBlockGoal)) {
