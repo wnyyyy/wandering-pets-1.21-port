@@ -9,9 +9,12 @@ public class CommonMixinPlugin implements IMixinConfigPlugin {
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
         if (mixinClassName.contains("FriendsAndFoes")) {
-            return isClassPresent("com.faboslav.friendsandfoes.common.FriendsAndFoes");
+            return isClassPresent("com.faboslav.friendsandfoes.common.entity.ai.brain.task.glare.GlareTeleportToOwnerTask");
         }
-        if (mixinClassName.contains("TameableFoxes")) {
+        if (mixinClassName.equals("TameableFoxesFoxFollowPlayerMixin")) {
+            return isClassPresent("lancet_.tameable_foxes.goals.FoxFollowPlayerGoal");
+        }
+        if (mixinClassName.equals("TameableFoxesFoxMixin")) {
             return isClassPresent("lancet_.tameable_foxes.TameableFoxes");
         }
         return true;
