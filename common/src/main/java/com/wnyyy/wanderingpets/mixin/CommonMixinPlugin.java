@@ -11,10 +11,10 @@ public class CommonMixinPlugin implements IMixinConfigPlugin {
         if (mixinClassName.contains("FriendsAndFoes")) {
             return isClassPresent("com.faboslav.friendsandfoes.common.entity.ai.brain.task.glare.GlareTeleportToOwnerTask");
         }
-        if (mixinClassName.equals("TameableFoxesFoxFollowPlayerMixin")) {
+        if (mixinClassName.contains("TameableFoxesFoxFollowPlayerMixin")) {
             return isClassPresent("lancet_.tameable_foxes.goals.FoxFollowPlayerGoal");
         }
-        if (mixinClassName.equals("TameableFoxesFoxMixin")) {
+        if (mixinClassName.contains("TameableFoxesFoxMixin")) {
             return isClassPresent("lancet_.tameable_foxes.TameableFoxes");
         }
         return true;
