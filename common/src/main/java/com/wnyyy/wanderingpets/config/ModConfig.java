@@ -52,7 +52,8 @@ public class ModConfig {
         @ConfigValue(description = "Whitelist of modded mob IDs allowed to use mod behavior. Copy IDs from the discovered list below into here.")
         public List<String> moddedMobWhitelist = new ArrayList<>(Arrays.asList(
                 "friendsandfoes:glare",
-                "alexsmobs:capybara"
+                "alexsmobs:capybara",
+                "minecraft:fox"
         ));
 
         @ConfigValue(description = "[READ-ONLY] Detected mobs that may or may not be compatible with mod behavior. Add these into the whitelist to turn on mod behavior. Requires loading a save to populate")

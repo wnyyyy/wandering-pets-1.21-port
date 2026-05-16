@@ -1,5 +1,7 @@
 package com.wnyyy.wanderingpets.platform;
 
+import com.wnyyy.wanderingpets.FabricModConfig;
+import com.wnyyy.wanderingpets.config.ModConfig;
 import com.wnyyy.wanderingpets.platform.services.IPlatformHelper;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
@@ -21,5 +23,10 @@ public class FabricPlatformHelper implements IPlatformHelper {
     @Override
     public boolean isModLoaded(String modId) {
         return FabricLoader.getInstance().isModLoaded(modId);
+    }
+
+    @Override
+    public void saveConfig(ModConfig.ConfigData configData) {
+        FabricModConfig.saveConfig(configData);
     }
 }
