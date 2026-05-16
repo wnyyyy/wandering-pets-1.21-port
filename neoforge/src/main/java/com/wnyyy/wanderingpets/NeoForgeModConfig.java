@@ -1,11 +1,13 @@
 package com.wnyyy.wanderingpets;
 
+import com.wnyyy.wanderingpets.config.ModConfig;
 import com.wnyyy.wanderingpets.config.ModConfig.ConfigData;
 import com.wnyyy.wanderingpets.config.ModConfig.ConfigValue;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class NeoForgeModConfig {
@@ -33,6 +35,8 @@ public class NeoForgeModConfig {
                         CONFIG_VALUE_MAP.put(name, builder.define(name, b));
                     } else if (defaultValue instanceof Integer i) {
                         CONFIG_VALUE_MAP.put(name, builder.defineInRange(name, i, info.min(), info.max()));
+                    } else if (defaultValue instanceof List<?> list) {
+                        CONFIG_VALUE_MAP.put(name, builder.defineList(name, list, () -> "", element -> true));
                     }
                 } catch (IllegalAccessException ignored) { }
             }
@@ -53,5 +57,23 @@ public class NeoForgeModConfig {
             } catch (IllegalAccessException ignored) {}
         }
         return data;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void saveConfig(ConfigData data) {
+        for (Field field : ConfigData.class.getDeclaredFields()) {
+            if (field.isAnnotationPresent(ModConfig.ConfigValue.class)) {
+                try {
+                    field.setAccessible(true);
+                    ModConfigSpec.ConfigValue<Object> configValue = (ModConfigSpec.ConfigValue<Object>) CONFIG_VALUE_MAP.get(field.getName());
+
+                    if (configValue != null) {
+                        Object runtimeValue = field.get(data);
+                        configValue.set(runtimeValue);
+                    }
+                } catch (IllegalAccessException ignored) {}
+            }
+        }
+        SPEC.save();
     }
 }

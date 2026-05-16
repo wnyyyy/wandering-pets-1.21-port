@@ -1,5 +1,7 @@
 package com.wnyyy.wanderingpets.platform;
 
+import com.wnyyy.wanderingpets.NeoForgeModConfig;
+import com.wnyyy.wanderingpets.config.ModConfig;
 import com.wnyyy.wanderingpets.platform.services.IPlatformHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
@@ -9,6 +11,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 
 import java.util.function.Consumer;
+
 
 public class NeoForgePlatformHelper implements IPlatformHelper {
 
@@ -42,5 +45,10 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
     @Override
     public boolean isModLoaded(String modId) {
         return ModList.get().isLoaded(modId);
+    }
+
+    @Override
+    public void saveConfig(ModConfig.ConfigData configData) {
+        NeoForgeModConfig.saveConfig(configData);
     }
 }

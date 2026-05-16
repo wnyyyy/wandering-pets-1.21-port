@@ -1,5 +1,6 @@
 package com.wnyyy.wanderingpets.platform.services;
 
+import com.wnyyy.wanderingpets.config.ModConfig;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -15,6 +16,8 @@ public interface IPlatformHelper {
     void registerEntityInteractCallback(EntityInteractCallback callback);
     void registerLevelLoadCallback(Consumer<ServerLevel> callback);
     boolean isModLoaded(String modId);
+
+    void saveConfig(ModConfig.ConfigData configData);
 
     @FunctionalInterface
     interface EntityInteractCallback {
