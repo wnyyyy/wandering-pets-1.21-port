@@ -89,7 +89,7 @@ public class FabricModConfig {
         }
     }
 
-    private static void saveConfig(ConfigData data) {
+    public static void saveConfig(ConfigData data) {
         Path configPath = FabricLoader.getInstance().getConfigDir().resolve(MOD_ID + ".json5");
         try {
             Files.createDirectories(configPath.getParent());
