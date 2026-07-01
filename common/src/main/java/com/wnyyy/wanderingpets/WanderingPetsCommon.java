@@ -72,9 +72,9 @@ public class WanderingPetsCommon {
 
         String name = mob.getType().getDescription().getString();
 
-        player.displayClientMessage(Component.translatable(
+        player.sendSystemMessage(Component.translatable(
                 shouldWander ? "wanderingpets.wander" : "wanderingpets.follow", name
-        ), false);
+        ));
 
         return InteractionResult.SUCCESS;
     }
